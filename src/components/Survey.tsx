@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { getSupabase } from "@/lib/supabase";
 import { Role, FEATURES, getQuestionsForRole, Question } from "@/lib/questions";
 import RolePicker from "./RolePicker";
 import QuestionField from "./QuestionField";
@@ -55,15 +54,19 @@ export default function Survey() {
     setSubmitting(true);
 
     try {
-      const supabase = getSupabase();
-      await supabase.from("survey_responses").insert({
-        role,
-        name: answers.name || null,
-        email: answers.email || null,
-        studio_name: answers.studio_name || null,
-        answers,
-        top_features: selectedFeatures,
+      const res = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role,
+          name: answers.name || null,
+          email: answers.email || null,
+          studio_name: answers.studio_name || null,
+          answers,
+          top_features: selectedFeatures,
+        }),
       });
+      if (!res.ok) console.error("Submit failed:", await res.text());
     } catch (err) {
       console.error("Submit error:", err);
     }
